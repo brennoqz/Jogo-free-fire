@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Free Fire: A Queda em Bermudas</title>
+  <style>
+    :root {
+      --primary: #ff4655;
+      --secondary: #ffb800;
+      --bg-dark: #0a0a0f;
+      --card-bg: #161622;
+      --text: #ece8e1;
+      --danger: #e74c3c;
+      --success: #2ecc71;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Trebuchet MS', 'Segoe UI', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: radial-gradient(circle at center, #1f1f30 0%, #0a0a0f 100%);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .game-container {
+      background-color: var(--card-bg);
+      border: 2px solid var(--primary);
+      border-radius: 16px;
+      max-width: 700px;
+      width: 100%;
+      padding: 28px;
+      box-shadow: 0 0 35px rgba(255, 70, 85, 0.25);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Barra de Status */
+    .hud-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 12px 18px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: bold;
+      font-size: 0.95rem;
+    }
+
+    .hp-bar-bg {
+      width: 100px;
+      height: 12px;
+      background: #333;
+      border-radius: 6px;
+      overflow: hidden;
+      display: inline-block;
+    }
+
+    .hp-bar-fill {
+      height: 100%;
+      width: 100%;
+      background: var(--success);
+      transition: width 0.3s ease, background 0.3s ease;
+    }
+
+    /* Imagem e Transição */
+    .image-frame {
+      width: 100%;
+      height: 260px;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 20px;
+      border: 2px solid rgba(255, 184, 0, 0.3);
+      position: relative;
+    }
+
+    .image-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s ease;
+    }
+
+    .image-frame:hover img {
+      transform: scale(1.03);
+    }
+
+    .story-box {
+      font-size: 1.15rem;
+      line-height: 1.6;
+      margin-bottom: 24px;
+      color: #d1d5db;
+      min-height: 80px;
+    }
+
+    /* Botões */
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #242436 0%, #1a1a26 100%);
+      color: var(--text);
+      border: 1px solid var(--primary);
+      padding: 16px 20px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .btn:hover {
+      background: var(--primary);
+      color: #fff;
+      transform: translateX(5px);
+      box-shadow: 0 0 15px rgba(255, 70, 85, 0.4);
+    }
+
+    .btn-restart {
+      border-color: var(--secondary);
+      text-align: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #d35400 0%, #e67e22 100%);
+    }
+
+    .btn-restart:hover {
+      background: var(--secondary);
+      color: #000;
+      box-shadow: 0 0 15px rgba(255, 184, 0, 0.5);
+    }
+
+    /* Animação Fade */
+    .fade-in {
+      animation: fadeIn 0.4s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="game-container">
+    <div class="hud-bar">
+      <div class="stat-item">
+        <span>❤️ HP:</span>
+        <div class="hp-bar-bg">
+          <div id="hp-fill" class="hp-bar-fill"></div>
+        </div>
+        <span id="hp-text">100</span>
+      </div>
+      <div class="stat-item">
+        <span>🎯 Abates:</span>
+        <span id="kills-count" style="color: var(--secondary);">0</span>
+      </div>
+      <div class="stat-item">
+        <span>🛡️ Equipamento:</span>
+        <span id="armor-text" style="color: #3498db;">Nenhum</span>
+      </div>
+    </div>
+    
+    <div class="image-frame">
+      <img id="scene-image" src="" alt="Cena Free Fire">
+    </div>
+
+    <div class="story-box fade-in" id="story-box">
+      Carregando partida...
+    </div>
+
+    <div class="options-grid" id="options-grid"></div>
+  </div>
+
+  <script>
+    // Sistema de Efeitos Sonoros com Web Audio API
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playSound(type) {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      if (type === 'click') {
+        osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.08);
+      } else if (type === 'booyah') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+        osc.frequency.setValueAtTime(450, audioCtx.currentTime + 0.1);
+        osc.frequency.setValueAtTime(600, audioCtx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.5);
+      } else if (type === 'hit') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+        osc.frequency.linearRampToValueAtTime(40, audioCtx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.2);
+      }
+    }
+
+    // Estado do Jogador
+    let gameState = {
+      hp: 100,
+      kills: 0,
+      armor: "Nenhum"
+    };
+
+    // Árvore da História
+    const storyData = {
+      inicio: {
+        text: "O avião sobrevoa Bermudas. A rota está traçada! Onde você prefere realizar o salto estratégico?",
+        image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80",
+        onEnter: () => { gameState = { hp: 100, kills: 0, armor: "Nenhum" }; },
+        options: [
+          { text: "🪂 Saltar na Peak (Intenso e arriscado)", nextStep: "peak" },
+          { text: "🪂 Saltar em Factory (Loot intermediário)", nextStep: "factory" },
+          { text: "🪂 Saltar na periferia (Loot seguro)", nextStep: "periferia" }
+        ]
+      },
+
+      // CAMINHO PEAK
+      peak: {
+        text: "Você cai no teto da casa principal da Peak! Encontra um Colete 3 e uma MP40, mas ouve um inimigo correndo abaixo de você.",
+        image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80",
+        onEnter: () => { gameState.armor = "Colete 3"; },
+        options: [
+          { text: "💥 Pulhar direto e rushar no inimigo", nextStep: "rush_peak" },
+          { text: "🧘 Ativar habilidade do Alok e pegar posição elevada", nextStep: "alok_peak" }
+        ]
+      },
+      rush_peak: {
+        text: "Você rusha sem olhar! O inimigo estava cravado de Doze Nova. Você tomou muito dano antes de eliminá-lo.",
+        image: "https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?auto=format&fit=crop&w=800&q=80",
+        onEnter: () => { 
+          gameState.hp -= 70; 
+          gameState.kills += 1;
+          playSound('hit');
+        },
+        options: [
+          { text: "Usar Kit Médico rapidamente", nextStep: "heal_peak" },
+          { text: "Correr sem curar para pegar o próximo inimigo", nextStep: "morte_rush" }
+        ]
+      },
+      morte_rush: {
+        text: "Com apenas 30 de HP, um Zé Guarita te avistou de longe e te eliminou com um tiro de Barrett.",
+        image: "https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?auto=format&fit=crop&w=800&q=80",
+        onEnter: () => { gameState.hp = 0; },
+        options: [
+          { text: "💀 Derrota! Tentar Novamente", nextStep: "inicio", isRestart: true }
+        ]
+      },
+      heal_peak: {
+        text: "Você se cura completamente. O gás fecha na Bimasakti e restarama apenas você e mais um squad no aberto!",
+        image: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=800&q=80",
+        onEnter: () => { gameState.hp = 100; },
+        options: [
+          { text: "🛡️ Levantar Parede de Gelo e trocar tiro de Lança-Granadas", nextStep: "final_lança" },
+          { text: "🚗 Pegar o carro e atropelar quem estiver na frente", nextStep: "final_carro" }
+        ]
+      },
+      alok_peak: {
+        text: "A velocidade e cura do Alok te dão a vantagem perfeita! Você elimina o adversário no andar de baixo sem tomar dano.",
+        image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80",
+        onEnter: () => { gameState.kills += 1; },
+        options: [
+          { text: "🎯 Pegar AWM e subir na torre para dar suporte", nextStep: "final_snip" }
+        ]
+      },
+
+      // CAMINHO FACTORY
+      factory: {
+        text: "Você cai no teto da Factory! Um clássico! Há outro jogador tentando te dar soco.",
+        image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80",
+        options: [
+          { text: "🥊 Usar a habilidade do Kla para dar soco de 400 de dano", nextStep: "soco_kla" },
+          { text: "🏃 Pular do teto imediatamente para o chão", nextStep: "pulo_factory" }
+        ]
+      },
+      soco_kla: {
+        text: "CAPA DE SOCO! Você derruba o adversário com um único golpe no teto da Factory!",
+        image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80",
+        onEnter: () => { gameState.kills += 1; },
+        options: [
+          { text: "Descender pelas escadas e pegar um AirDrop", nextStep: "final_snip" }
+        ]
+      },
+      pulo_factory: {
+        text: "Você pulou de uma altura gigante e perdeu metade da sua vida com a queda!",
+        image: "https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?auto=format&fit=crop&w=800&q=80",
+        onEnter: () => { 
+          gameState.hp -= 50; 
+          playSound('hit');
+        },
+        options: [
+          { text: "Procurar Kit Médico nas guaritas", nextStep: "periferia" }
+        ]
+      },
+
+      // CAMINHO PERIFERIA
+      periferia: {
+        text: "Você faz um loot tranquilo em Rim Nam Village. Consegue Colete 2, Capacete 2 e uma Groza. O gás está avançando.",
+        image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80",
+        onEnter: () => { gameState.armor = "Colete 2"; },
+        options: [
+          { text: "Rotacionar pelo limite do gás", nextStep: "final_estratega" }
+        ]
+      },
+
+      // FINAIS (BOOYAH)
+      final_lança: {
+        text: "🏆 BOOYAH! FINAL 1: MESTRE DAS GRANADAS! Seu tiro de Lança-Granadas destrói o gelo inimigo e garante a vitória da partida!",
+        image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80",
+        onEnter: () => { gameState.kills += 2; playSound('booyah'); },
+        options: [{ text: "🔄 Jogar Novamente", nextStep: "inicio", isRestart: true }]
+      },
+      final_carro: {
+        text: "🏆 BOOYAH! FINAL 2: O MONSTRO DO ZÉ CARRINHO! Você acelera com o Carro Esportivo e limpa o último squad no aberto!",
+        image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80",
+        onEnter: () => { gameState.kills += 1; playSound('booyah'); },
+        options: [{ text: "🔄 Jogar Novamente", nextStep: "inicio", isRestart: true }]
+      },
+      final_snip: {
+        text: "🏆 BOOYAH! FINAL 3: O REI DA AWM! Você acerta um tiro de 1100 de dano na cabeça do último inimigo a 300m de distância!",
+        image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80",
+        onEnter: () => { gameState.kills += 1; playSound('booyah'); },
+        options: [{ text: "🔄 Jogar Novamente", nextStep: "inicio", isRestart: true }]
+      },
+      final_estratega: {
+        text: "🏆 BOOYAH! FINAL 4: ESTRATEGISTA SILENCIOSO! Você esperou os dois últimos squads se enfrentarem e finalizou o último sobrevivente miado!",
+        image: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=800&q=80",
+        onEnter: () => { gameState.kills += 1; playSound('booyah'); },
+        options: [{ text: "🔄 Jogar Novamente", nextStep: "inicio", isRestart: true }]
+      }
+    };
+
+    // Atualização da HUD
+    function updateHUD() {
+      const hpFill = document.getElementById('hp-fill');
+      const hpText = document.getElementById('hp-text');
+      const killsText = document.getElementById('kills-count');
+      const armorText = document.getElementById('armor-text');
+
+      hpText.innerText = gameState.hp;
+      hpFill.style.width = `${Math.max(0, gameState.hp)}%`;
+      
+      if (gameState.hp <= 30) {
+        hpFill.style.background = 'var(--danger)';
+      } else {
+        hpFill.style.background = 'var(--success)';
+      }
+
+      killsText.innerText = gameState.kills;
+      armorText.innerText = gameState.armor;
+    }
+
+    // Renderização das fases
+    function renderStep(stepKey) {
+      const currentStep = storyData[stepKey];
+      if (!currentStep) return;
+
+      // Executa lógica da cena (se houver)
+      if (currentStep.onEnter) {
+        currentStep.onEnter();
+      }
+
+      updateHUD();
+
+      // Atualiza elementos visuais com animação
+      const storyBox = document.getElementById('story-box');
+      const sceneImg = document.getElementById('scene-image');
+      const optionsGrid = document.getElementById('options-grid');
+
+      storyBox.classList.remove('fade-in');
+      void storyBox.offsetWidth; // Trigger reflow para reiniciar animação
+      storyBox.classList.add('fade-in');
+
+      storyBox.innerText = currentStep.text;
+      sceneImg.src = currentStep.image;
+
+      optionsGrid.innerHTML = '';
+
+      currentStep.options.forEach(option => {
+        const btn = document.createElement('button');
+        btn.innerHTML = `<span>${option.text}</span> <span>➔</span>`;
+        btn.classList.add('btn');
+
+        if (option.isRestart) {
+          btn.classList.add('btn-restart');
+        }
+
+        btn.addEventListener('click', () => {
+          playSound('click');
+          renderStep(option.nextStep);
+        });
+
+        optionsGrid.appendChild(btn);
+      });
+    }
+
+    // Inicialização do Jogo
+    renderStep('inicio');
+  </script>
+</body>
+</html>
