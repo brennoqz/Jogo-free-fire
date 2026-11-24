@@ -5,169 +5,203 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Free Fire: A Queda em Bermudas</title>
   <style>
+
     :root {
-      --primary: #ff4655;
-      --secondary: #ffb800;
-      --bg-dark: #0a0a0f;
-      --card-bg: #161622;
-      --text: #ece8e1;
-      --danger: #e74c3c;
-      --success: #2ecc71;
+      --primary: #ff4d3d;
+      --secondary: #ffc247;
+      --bg-dark: #080b12;
+      --card-bg: #111824;
+      --text: #f4f6fb;
+      --muted: #aab4c5;
+      --danger: #ff4d5a;
+      --success: #35d69a;
+      --line: rgba(255,255,255,.11);
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Trebuchet MS', 'Segoe UI', sans-serif;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background-color: var(--bg-dark);
-      background-image: radial-gradient(circle at center, #1f1f30 0%, #0a0a0f 100%);
-      color: var(--text);
-      display: flex;
-      justify-content: center;
-      align-items: center;
       min-height: 100vh;
-      padding: 20px;
+      padding: 28px 16px;
+      display: grid;
+      place-items: center;
+      color: var(--text);
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      background:
+        radial-gradient(ellipse at 12% 12%, rgba(255,77,61,.18), transparent 34%),
+        radial-gradient(ellipse at 88% 85%, rgba(255,194,71,.10), transparent 32%),
+        linear-gradient(145deg, #080b12, #101827 55%, #080b12);
     }
 
     .game-container {
-      background-color: var(--card-bg);
-      border: 2px solid var(--primary);
-      border-radius: 16px;
-      max-width: 700px;
-      width: 100%;
-      padding: 28px;
-      box-shadow: 0 0 35px rgba(255, 70, 85, 0.25);
+      width: min(100%, 820px);
+      padding: clamp(18px, 4vw, 34px);
       position: relative;
       overflow: hidden;
+      border: 1px solid rgba(255,194,71,.35);
+      border-radius: 24px;
+      background: linear-gradient(155deg, rgba(22,32,47,.98), rgba(11,16,26,.98));
+      box-shadow: 0 28px 90px rgba(0,0,0,.55), 0 0 45px rgba(255,77,61,.10);
+    }
+    .game-container::before {
+      content: "FREE FIRE  /  BERMUDA SURVIVAL";
+      display: block;
+      margin-bottom: 20px;
+      color: var(--secondary);
+      font-size: .72rem;
+      font-weight: 900;
+      letter-spacing: .22em;
+    }
+    .game-container::after {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--secondary), var(--primary));
     }
 
-    /* Barra de Status */
     .hud-bar {
-      display: flex;
-      justify-content: space-between;
+      display: grid;
+      grid-template-columns: 1.5fr .8fr 1fr;
+      gap: 12px;
       align-items: center;
-      background: rgba(0, 0, 0, 0.4);
-      padding: 12px 18px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 18px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      background: rgba(4,8,14,.72);
+      backdrop-filter: blur(12px);
     }
-
     .stat-item {
+      min-width: 0;
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-weight: bold;
-      font-size: 0.95rem;
+      justify-content: center;
+      gap: 9px;
+      color: #dce3ee;
+      font-size: .88rem;
+      font-weight: 750;
+      white-space: nowrap;
     }
-
     .hp-bar-bg {
-      width: 100px;
-      height: 12px;
-      background: #333;
-      border-radius: 6px;
-      overflow: hidden;
+      width: clamp(55px, 10vw, 105px);
+      height: 9px;
       display: inline-block;
-    }
-
-    .hp-bar-fill {
-      height: 100%;
-      width: 100%;
-      background: var(--success);
-      transition: width 0.3s ease, background 0.3s ease;
-    }
-
-    /* Imagem e Transição */
-    .image-frame {
-      width: 100%;
-      height: 260px;
-      border-radius: 10px;
       overflow: hidden;
-      margin-bottom: 20px;
-      border: 2px solid rgba(255, 184, 0, 0.3);
-      position: relative;
+      border-radius: 20px;
+      background: #293343;
     }
-
-    .image-frame img {
+    .hp-bar-fill {
       width: 100%;
       height: 100%;
-      object-fit: cover;
-      transition: transform 0.5s ease;
+      border-radius: inherit;
+      background: var(--success);
+      box-shadow: 0 0 12px currentColor;
+      transition: width .35s ease, background .35s ease;
     }
 
-    .image-frame:hover img {
-      transform: scale(1.03);
+    .image-frame {
+      position: relative;
+      width: 100%;
+      height: clamp(190px, 36vw, 340px);
+      margin-bottom: 22px;
+      overflow: hidden;
+      border: 1px solid rgba(255,194,71,.45);
+      border-radius: 17px;
+      background: #080b12;
+      box-shadow: 0 12px 30px rgba(0,0,0,.32);
     }
+    .image-frame::after {
+      content: "BATTLE ZONE";
+      position: absolute;
+      left: 14px; bottom: 13px;
+      padding: 6px 10px;
+      border: 1px solid rgba(255,255,255,.22);
+      border-radius: 6px;
+      color: white;
+      background: rgba(0,0,0,.55);
+      font-size: .65rem;
+      font-weight: 900;
+      letter-spacing: .16em;
+    }
+    .image-frame img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      transition: transform .65s ease, filter .4s ease;
+      filter: saturate(1.12) contrast(1.05);
+    }
+    .image-frame:hover img { transform: scale(1.045); }
 
     .story-box {
-      font-size: 1.15rem;
-      line-height: 1.6;
-      margin-bottom: 24px;
-      color: #d1d5db;
-      min-height: 80px;
+      min-height: 90px;
+      margin-bottom: 22px;
+      padding: 19px 20px;
+      border-left: 3px solid var(--secondary);
+      border-radius: 0 13px 13px 0;
+      color: #d9e1ed;
+      background: linear-gradient(90deg, rgba(255,194,71,.09), rgba(255,255,255,.025));
+      font-size: clamp(1rem, 2.2vw, 1.12rem);
+      line-height: 1.7;
     }
-
-    /* Botões */
-    .options-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 12px;
-    }
-
+    .options-grid { display: grid; grid-template-columns: 1fr; gap: 11px; }
     .btn {
-      background: linear-gradient(135deg, #242436 0%, #1a1a26 100%);
-      color: var(--text);
-      border: 1px solid var(--primary);
-      padding: 16px 20px;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: bold;
-      cursor: pointer;
-      text-align: left;
-      transition: all 0.2s ease;
+      width: 100%;
+      min-height: 58px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 16px;
+      padding: 15px 18px;
+      border: 1px solid rgba(255,255,255,.13);
+      border-radius: 12px;
+      color: #edf2fa;
+      background: linear-gradient(110deg, #202d40, #151f2e);
+      font-size: .96rem;
+      font-weight: 750;
+      text-align: left;
+      cursor: pointer;
+      transition: transform .2s ease, border-color .2s ease, background .2s ease, box-shadow .2s ease;
     }
-
+    .btn span:last-child { color: var(--secondary); font-size: 1.15rem; }
     .btn:hover {
-      background: var(--primary);
-      color: #fff;
-      transform: translateX(5px);
-      box-shadow: 0 0 15px rgba(255, 70, 85, 0.4);
+      transform: translateY(-2px);
+      border-color: var(--primary);
+      background: linear-gradient(110deg, #3a2730, #202638);
+      box-shadow: 0 9px 24px rgba(255,77,61,.15);
     }
-
+    .btn:focus-visible { outline: 3px solid var(--secondary); outline-offset: 3px; }
     .btn-restart {
-      border-color: var(--secondary);
-      text-align: center;
       justify-content: center;
-      background: linear-gradient(135deg, #d35400 0%, #e67e22 100%);
+      border-color: rgba(255,194,71,.55);
+      color: #17120a;
+      background: linear-gradient(110deg, #ffc247, #ff8d3d);
     }
-
+    .btn-restart span:last-child { display: none; }
     .btn-restart:hover {
-      background: var(--secondary);
-      color: #000;
-      box-shadow: 0 0 15px rgba(255, 184, 0, 0.5);
+      color: #17120a;
+      border-color: #ffe1a0;
+      background: linear-gradient(110deg, #ffd477, #ff9e50);
+      box-shadow: 0 9px 25px rgba(255,194,71,.2);
     }
-
-    /* Animação Fade */
-    .fade-in {
-      animation: fadeIn 0.4s ease-in-out;
-    }
-
+    .fade-in { animation: fadeIn .38s ease both; }
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(8px); }
+      from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
+    @media (max-width: 560px) {
+      body { padding: 12px; }
+      .game-container { padding: 17px; border-radius: 18px; }
+      .hud-bar { grid-template-columns: 1fr 1fr; gap: 12px 6px; }
+      .stat-item { font-size: .76rem; }
+      .stat-item:last-child { grid-column: 1 / -1; }
+      .story-box { padding: 15px; }
+      .btn { min-height: 54px; padding: 13px 14px; font-size: .9rem; }
+    }
+
   </style>
 </head>
 <body>
 
-  <div class="game-container">
+  <main class="game-container" aria-label="Jogo Free Fire: A Queda em Bermudas">
     <div class="hud-bar">
       <div class="stat-item">
         <span>❤️ HP:</span>
@@ -195,7 +229,7 @@
     </div>
 
     <div class="options-grid" id="options-grid"></div>
-  </div>
+  </main>
 
   <script>
     // Sistema de Efeitos Sonoros com Web Audio API
